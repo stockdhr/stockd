@@ -28,7 +28,7 @@ export async function setup(request: Request, env: Env): Promise<Response> {
   try { passwordHash = await hashPassword(password); } catch { throw new HttpError(422, "Lozinka mora imati najmanje 12 znakova."); }
   const id = crypto.randomUUID();
   await env.DB.batch([
-    env.DB.prepare("INSERT INTO users (id, name, username, email, password_hash, role, must_change_password) VALUES (?, ?, ?, ?, ?, 'admin', 0)").bind(id, name, username, email, passwordHash),
+    env.DB.prepare("INSERT INTO users (id, name, username, email, password_hash, role, must_change_password) VALUES (?, ?, ?, ?, ?, 'admin', 1)").bind(id, name, username, email, passwordHash),
     env.DB.prepare("INSERT INTO user_settings (user_id) VALUES (?)").bind(id),
   ]);
   return json({ message: "Administratorski račun je kreiran." }, 201);

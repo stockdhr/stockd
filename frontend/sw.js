@@ -1,6 +1,6 @@
-const VERSION = "stockd-v1";
+const VERSION = "stockd-v2";
 const STATIC_CACHE = `${VERSION}-static`;
-const ASSETS = ["./", "./index.html", "./css/app.css", "./js/app.js", "./js/api.js", "./js/demo-data.js", "./assets/icon.svg", "./manifest.json"];
+const ASSETS = ["./", "./index.html", "./login.html", "./change-password.html", "./expired.html", "./css/app.css", "./css/auth.css", "./js/app.js", "./js/api.js", "./js/demo-data.js", "./assets/icon.svg", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(STATIC_CACHE).then((cache) => cache.addAll(ASSETS)));
@@ -28,4 +28,3 @@ self.addEventListener("fetch", (event) => {
     return response;
   })));
 });
-
