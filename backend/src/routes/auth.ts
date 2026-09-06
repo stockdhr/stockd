@@ -25,7 +25,10 @@ export async function setup(request: Request, env: Env): Promise<Response> {
   const password = textField(body, "password", { required: true, max: 128 })!;
   if (!email.includes("@")) throw new HttpError(422, "Email adresa nije ispravna.");
   let passwordHash: string;
-  try { passwordHash = await hashPassword(password); } catch { throw new HttpError(422, "Lozinka mora imati najmanje 12 znakova."); }
+  try { passwordHash = await hashPassword(password); } catch (error) {
+    if (error instanceof Error && error.message === "PASSWORD_LENGTH") throw new HttpError(422, "Lozinka mora imati najmanje 12 znakova.");
+    throw error;
+  }
   const id = crypto.randomUUID();
   await env.DB.batch([
     env.DB.prepare("INSERT INTO users (id, name, username, email, password_hash, role, must_change_password) VALUES (?, ?, ?, ?, ?, 'admin', 1)").bind(id, name, username, email, passwordHash),
@@ -87,7 +90,10 @@ export async function changePassword(request: Request, env: Env): Promise<Respon
   const stored = await env.DB.prepare("SELECT password_hash FROM users WHERE id = ?").bind(user.id).first<{ password_hash: string }>();
   if (!stored || !await verifyPassword(currentPassword, stored.password_hash)) throw new HttpError(422, "Trenutna lozinka nije ispravna.");
   let hash: string;
-  try { hash = await hashPassword(newPassword); } catch { throw new HttpError(422, "Nova lozinka mora imati najmanje 12 znakova."); }
+  try { hash = await hashPassword(newPassword); } catch (error) {
+    if (error instanceof Error && error.message === "PASSWORD_LENGTH") throw new HttpError(422, "Nova lozinka mora imati najmanje 12 znakova.");
+    throw error;
+  }
   await env.DB.batch([
     env.DB.prepare("UPDATE users SET password_hash = ?, must_change_password = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?").bind(hash, user.id),
     env.DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(user.id),

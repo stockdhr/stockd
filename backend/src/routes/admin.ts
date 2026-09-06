@@ -51,7 +51,10 @@ export async function createUser(request: Request, env: Env): Promise<Response> 
   const password = textField(body, "password", { required: true, max: 128 })!;
   if (!email.includes("@")) throw new HttpError(422, "Email adresa nije ispravna.");
   let passwordHash: string;
-  try { passwordHash = await hashPassword(password); } catch { throw new HttpError(422, "Privremena lozinka mora imati najmanje 12 znakova."); }
+  try { passwordHash = await hashPassword(password); } catch (error) {
+    if (error instanceof Error && error.message === "PASSWORD_LENGTH") throw new HttpError(422, "Privremena lozinka mora imati najmanje 12 znakova.");
+    throw error;
+  }
   const now = new Date();
   const expires = addCalendarMonths(now, 1);
   const id = crypto.randomUUID();
