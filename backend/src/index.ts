@@ -1,7 +1,7 @@
 import { HttpError, json } from "./lib/http";
 import { changePassword, login, logout, me, setup } from "./routes/auth";
 import { adminDashboard, createUser, listUsers, renewUser, toggleUser } from "./routes/admin";
-import { createInventory, createProduct, createSale, customers, dashboard, expenses, globalSearch, listInventory, listProducts, listSales, undoSale } from "./routes/app";
+import { createInventory, createProduct, createSale, customers, dashboard, expenses, globalSearch, listInventory, listProducts, listSales, undoSale, updateInventory } from "./routes/app";
 
 const SECURITY_HEADERS: Record<string, string> = {
   "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
@@ -70,6 +70,8 @@ async function route(request: Request, env: Env): Promise<Response> {
   if (request.method === "PATCH" && toggleMatch?.[1]) return toggleUser(request, env, toggleMatch[1]);
   const undoMatch = path.match(/^\/api\/sales\/([^/]+)\/undo$/);
   if (request.method === "POST" && undoMatch?.[1]) return undoSale(request, env, undoMatch[1]);
+  const inventoryMatch = path.match(/^\/api\/inventory\/([^/]+)$/);
+  if (request.method === "PATCH" && inventoryMatch?.[1]) return updateInventory(request, env, inventoryMatch[1]);
   throw new HttpError(404, "Stranica nije pronađena.");
 }
 

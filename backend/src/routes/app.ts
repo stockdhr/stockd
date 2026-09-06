@@ -126,6 +126,41 @@ export async function createInventory(request: Request, env: Env): Promise<Respo
   return json({ id, total_cost_cents: purchasePrice+shipping+authentication+additional, message:"Artikl je dodan na zalihu." },201);
 }
 
+export async function updateInventory(request: Request, env: Env, itemId: string): Promise<Response> {
+  const user = await activeUser(request, env);
+  const current = await env.DB.prepare(`SELECT i.id, i.product_id, i.variant, i.purchase_price_cents,
+    i.inbound_shipping_cents, i.authentication_fee_cents, i.additional_cost_cents, i.purchased_at,
+    i.source, i.notes, p.name product_name
+    FROM inventory_items i JOIN products p ON p.id=i.product_id
+    WHERE i.id=? AND i.user_id=? AND i.status='in_stock'`)
+    .bind(itemId,user.id).first<{
+      id:string; product_id:string; variant:string|null; purchase_price_cents:number; inbound_shipping_cents:number;
+      authentication_fee_cents:number; additional_cost_cents:number; purchased_at:string; source:string|null;
+      notes:string|null; product_name:string;
+    }>();
+  if (!current) throw new HttpError(404,"Artikl nije pronađen.");
+  const body = await readJson(request);
+  const variant = textField(body,"variant",{max:80}) ?? current.variant;
+  const purchasePrice = body.purchase_price_cents === undefined ? current.purchase_price_cents : centsField(body,"purchase_price_cents",true);
+  const shipping = body.inbound_shipping_cents === undefined ? current.inbound_shipping_cents : centsField(body,"inbound_shipping_cents");
+  const authentication = body.authentication_fee_cents === undefined ? current.authentication_fee_cents : centsField(body,"authentication_fee_cents");
+  const additional = body.additional_cost_cents === undefined ? current.additional_cost_cents : centsField(body,"additional_cost_cents");
+  const purchasedAt = body.purchased_at === undefined ? current.purchased_at : isoDateField(body,"purchased_at",true)!;
+  const source = body.source === undefined ? current.source : textField(body,"source",{max:160});
+  const notes = body.notes === undefined ? current.notes : textField(body,"notes",{max:2000});
+  const totalCost = purchasePrice+shipping+authentication+additional;
+  await env.DB.batch([
+    env.DB.prepare(`UPDATE inventory_items SET variant=?,purchase_price_cents=?,inbound_shipping_cents=?,
+      authentication_fee_cents=?,additional_cost_cents=?,purchased_at=?,source=?,notes=?,updated_at=CURRENT_TIMESTAMP
+      WHERE id=? AND user_id=? AND status='in_stock'`)
+      .bind(variant,purchasePrice,shipping,authentication,additional,purchasedAt,source,notes,itemId,user.id),
+    activityStatement(env,user.id,"inventory_updated","inventory_item",itemId,{name:current.product_name,variant,total_cost_cents:totalCost}),
+  ]);
+  return json({ id:itemId, variant, purchase_price_cents:purchasePrice, inbound_shipping_cents:shipping,
+    authentication_fee_cents:authentication, additional_cost_cents:additional, purchased_at:purchasedAt,
+    source, notes, total_cost_cents:totalCost, message:"Artikl je ažuriran." });
+}
+
 export async function createSale(request: Request, env: Env): Promise<Response> {
   const user = await activeUser(request, env);
   const body = await readJson(request);
