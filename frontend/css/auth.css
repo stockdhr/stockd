@@ -1,0 +1,8 @@
+@import url("app.css");
+body.auth-page{display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 20% 0%,rgba(108,92,231,.10),transparent 38%),var(--bg)}
+.auth-shell{width:min(420px,100%)}.auth-brand{text-align:center;font-size:31px;font-weight:780;letter-spacing:-1.7px;margin-bottom:34px}.auth-brand span{color:var(--accent)}
+.auth-card{padding:34px;border-radius:28px}.auth-card h1{margin:0;font-size:27px;letter-spacing:-1.2px}.auth-card>p{margin:9px 0 27px;color:var(--muted);font-size:12px;line-height:1.6}.auth-form{display:grid;gap:15px}.auth-form .field input{height:48px;background:var(--surface-2)}.auth-form .primary-button{justify-content:center;height:48px;margin-top:3px;background:var(--text)}
+.auth-foot{text-align:center;color:var(--muted);font-size:10px;margin-top:22px}.auth-foot a{color:var(--text)}.password-wrap{position:relative}.password-wrap input{padding-right:48px}.password-wrap button{position:absolute;right:5px;top:5px}
+.status-screen{text-align:center}.status-icon{width:62px;height:62px;border-radius:20px;background:#fff0df;color:var(--orange);display:grid;place-items:center;margin:0 auto 20px}.status-icon svg{width:28px;height:28px}.status-detail{display:grid;gap:10px;background:var(--surface-2);border-radius:16px;padding:16px;margin:24px 0;text-align:left}.status-detail div{display:flex;justify-content:space-between;font-size:11px}.status-detail span{color:var(--muted)}
+.form-error{border-radius:11px;background:#ffeded;color:var(--red);padding:10px 12px;font-size:10px}
+

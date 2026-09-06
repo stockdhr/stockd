@@ -1,0 +1,26 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "stockd-api",
+  "main": "src/index.ts",
+  "account_id": "3480db937e666edf09da2f20d103a4a4",
+  "compatibility_date": "2026-09-06",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "ENVIRONMENT": "production",
+    "ALLOWED_ORIGIN": "https://stockdhr.github.io"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "stockd-production",
+      "database_id": "50b276ab-311c-42d7-83b1-279b4a52f99d",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "logs": { "head_sampling_rate": 1 },
+    "traces": { "enabled": true, "head_sampling_rate": 0.05 }
+  }
+}
+

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="hr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="description" content="Stockd — poslovni centar za resellere.">
+  <title>Stockd</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="offline-banner" id="offlineBanner" hidden>Nema internetske veze — tvoji podaci u formi su sačuvani.</div>
+  <div class="update-banner" id="updateBanner" hidden>
+    <span>Dostupna je nova verzija Stockda.</span><button id="refreshApp">Osvježi</button>
+  </div>
+
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Glavna navigacija">
+      <a class="brand" href="#pregled" aria-label="Stockd početna">Stockd<span>.</span></a>
+      <nav class="side-nav">
+        <button class="nav-item active" data-view="pregled"><span data-icon="home"></span>Pregled</button>
+        <button class="nav-item" data-view="zaliha"><span data-icon="box"></span>Zaliha <b>43</b></button>
+        <button class="nav-item" data-view="prodaje"><span data-icon="bag"></span>Prodaje</button>
+        <button class="nav-item" data-view="proizvodi"><span data-icon="tag"></span>Proizvodi</button>
+        <button class="nav-item" data-view="kupci"><span data-icon="users"></span>Kupci</button>
+        <button class="nav-item" data-view="troskovi"><span data-icon="receipt"></span>Troškovi</button>
+        <button class="nav-item" data-view="izvjestaji"><span data-icon="chart"></span>Izvještaji</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="nav-item" data-view="postavke"><span data-icon="settings"></span>Postavke</button>
+        <div class="profile-card">
+          <div class="avatar">BM</div>
+          <div><strong>Bruno Marić</strong><span>Aktivna članarina</span></div>
+          <button class="icon-button" aria-label="Otvori korisnički izbornik"><span data-icon="more"></span></button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="mobile-brand">Stockd<span>.</span></div>
+        <div class="page-heading"><p id="eyebrow">Nedjelja, 6. rujna</p><h1 id="pageTitle">Dobro jutro, Bruno.</h1></div>
+        <div class="top-actions">
+          <button class="search-trigger" id="searchTrigger"><span data-icon="search"></span><span>Pretraži</span><kbd>⌘ K</kbd></button>
+          <button class="icon-button notification-button" aria-label="Obavijesti"><span data-icon="bell"></span><i></i></button>
+          <button class="avatar mobile-avatar">BM</button>
+        </div>
+      </header>
+
+      <section id="appView" class="view" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Mobilna navigacija">
+    <button class="mobile-nav-item active" data-view="pregled"><span data-icon="home"></span><small>Pregled</small></button>
+    <button class="mobile-nav-item" data-view="zaliha"><span data-icon="box"></span><small>Zaliha</small></button>
+    <button class="quick-add" id="quickAdd" aria-label="Brzo dodavanje"><span data-icon="plus"></span></button>
+    <button class="mobile-nav-item" data-view="prodaje"><span data-icon="bag"></span><small>Prodaje</small></button>
+    <button class="mobile-nav-item" data-view="vise"><span data-icon="grid"></span><small>Više</small></button>
+  </nav>
+
+  <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
+  <section class="bottom-sheet" id="actionSheet" aria-modal="true" role="dialog" aria-labelledby="sheetTitle" hidden>
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div><p>Brza akcija</p><h2 id="sheetTitle">Što želiš dodati?</h2></div><button class="icon-button" data-close-sheet aria-label="Zatvori"><span data-icon="close"></span></button></div>
+    <div class="quick-action-grid">
+      <button data-form="inventory"><span class="action-icon violet" data-icon="boxPlus"></span><strong>Dodaj na zalihu</strong><small>Novi fizički artikl</small></button>
+      <button data-form="sale"><span class="action-icon green" data-icon="bag"></span><strong>Nova prodaja</strong><small>Evidentiraj u par sekundi</small></button>
+      <button data-form="product"><span class="action-icon blue" data-icon="tag"></span><strong>Novi proizvod</strong><small>Dodaj u katalog</small></button>
+      <button data-form="expense"><span class="action-icon orange" data-icon="receipt"></span><strong>Novi trošak</strong><small>Poslovni ili uz artikl</small></button>
+    </div>
+  </section>
+
+  <section class="modal" id="formModal" aria-modal="true" role="dialog" hidden>
+    <div class="modal-card" id="modalContent"></div>
+  </section>
+  <section class="search-palette" id="searchPalette" aria-modal="true" role="dialog" hidden>
+    <div class="search-card">
+      <div class="search-input-row"><span data-icon="search"></span><input id="globalSearch" type="search" placeholder="Proizvod, veličina, kupac ili tracking…" autocomplete="off"><kbd>ESC</kbd></div>
+      <div id="searchResults" class="search-results"></div>
+    </div>
+  </section>
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
+

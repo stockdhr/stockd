@@ -1,0 +1,12 @@
+node_modules/
+.DS_Store
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example
+dist/
+coverage/
+.tools/
+frontend/js/config.js
+

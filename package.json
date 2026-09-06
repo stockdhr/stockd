@@ -1,0 +1,20 @@
+{
+  "name": "stockd",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --config backend/wrangler.jsonc --local",
+    "typecheck": "tsc --noEmit -p backend/tsconfig.json",
+    "test": "vitest run",
+    "deploy:api": "wrangler deploy --config backend/wrangler.jsonc --minify",
+    "db:migrate:local": "wrangler d1 migrations apply stockd-production --local --config backend/wrangler.jsonc",
+    "db:migrate:remote": "wrangler d1 migrations apply stockd-production --remote --config backend/wrangler.jsonc"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.129.0"
+  }
+}

@@ -1,0 +1,3 @@
+# Kopiraj u .dev.vars. Ova datoteka se ne commita.
+SETUP_SECRET=postavi-dugacak-nasumican-lokalni-secret
+
