@@ -192,7 +192,7 @@ export async function listSales(request: Request, env: Env): Promise<Response> {
     s.sale_price_cents-(i.purchase_price_cents+i.inbound_shipping_cents+i.authentication_fee_cents+i.additional_cost_cents+s.platform_fee_cents+s.outbound_shipping_cents+s.other_cost_cents) profit_cents,
     julianday(s.sold_at)-julianday(i.purchased_at) days_held,c.name customer_name
     FROM sales s JOIN inventory_items i ON i.id=s.inventory_item_id JOIN products p ON p.id=i.product_id
-    LEFT JOIN customers c ON c.id=s.customer_id WHERE s.user_id=? ORDER BY s.sold_at DESC LIMIT 200`).bind(user.id).all();
+    LEFT JOIN customers c ON c.id=s.customer_id WHERE s.user_id=? AND s.voided_at IS NULL ORDER BY s.sold_at DESC LIMIT 200`).bind(user.id).all();
   return json({ sales:result.results });
 }
 
@@ -205,7 +205,7 @@ export async function undoSale(request: Request, env: Env, saleId: string): Prom
     env.DB.prepare("UPDATE inventory_items SET status='in_stock',updated_at=CURRENT_TIMESTAMP WHERE id=? AND user_id=?").bind(sale.inventory_item_id,user.id),
     activityStatement(env,user.id,"sale_voided","sale",saleId,{inventory_item_id:sale.inventory_item_id}),
   ]);
-  return json({message:"Prodaja je poništena, a artikl vraćen na zalihu."});
+  return json({inventory_item_id:sale.inventory_item_id,message:"Prodaja je poništena, a artikl vraćen na zalihu."});
 }
 
 export async function customers(request: Request, env: Env): Promise<Response> {
