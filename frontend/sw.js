@@ -1,4 +1,4 @@
-const VERSION = "stockd-v2";
+const VERSION = "stockd-v3";
 const STATIC_CACHE = `${VERSION}-static`;
 const ASSETS = ["./", "./index.html", "./login.html", "./change-password.html", "./expired.html", "./css/app.css", "./css/auth.css", "./js/app.js", "./js/api.js", "./js/demo-data.js", "./assets/icon.svg", "./manifest.json"];
 

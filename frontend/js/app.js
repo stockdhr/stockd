@@ -58,7 +58,41 @@ function formMarkup(type,itemId){const products=state.products.map(p=>`<option v
 function openForm(type,itemId){closeSheet();$("#modalContent").innerHTML=formMarkup(type,itemId);$("#formModal").hidden=false;hydrateIcons($("#modalContent"));$$('[data-close-modal]').forEach(b=>b.onclick=closeModal);$("#entryForm").onsubmit=submitForm;if(type==='inventory')$$('#entryForm input[type=number]').forEach(i=>i.oninput=updateTrueCost)}
 function closeModal(){$("#formModal").hidden=true}
 function updateTrueCost(){const f=$("#entryForm");const total=['purchase_price','shipping','authentication','additional'].reduce((s,n)=>s+(Number(f.elements[n]?.value)||0),0);$("#trueCost").textContent=new Intl.NumberFormat('hr-HR',{style:'currency',currency:'EUR'}).format(total)}
-async function submitForm(event){event.preventDefault();const form=event.currentTarget,type=form.dataset.type,data=Object.fromEntries(new FormData(form));const euro=(v)=>Math.round((Number(v)||0)*100);try{if(type==='inventory'){const p=state.products.find(x=>x.id===data.product_id);state.inventory.unshift({id:crypto.randomUUID(),product_name:p?.name??'Artikl',brand:p?.brand??'',variant:data.variant,total_cost_cents:euro(data.purchase_price)+euro(data.shipping)+euro(data.authentication)+euro(data.additional),purchase_price_cents:euro(data.purchase_price),age_days:0});if(!demoMode)await api('/api/inventory',{method:'POST',body:JSON.stringify({product_id:data.product_id,variant:data.variant,purchase_price_cents:euro(data.purchase_price),inbound_shipping_cents:euro(data.shipping),authentication_fee_cents:euro(data.authentication),additional_cost_cents:euro(data.additional),purchased_at:data.purchased_at})})}else if(type==='product'){const p={id:crypto.randomUUID(),name:data.name,brand:data.brand};state.products.unshift(p);if(!demoMode)await api('/api/products',{method:'POST',body:JSON.stringify(data)})}else if(type==='sale'){const item=state.inventory.find(x=>x.id===data.inventory_item_id);if(item){const price=euro(data.sale_price),profit=price-item.total_cost_cents-euro(data.platform_fee)-euro(data.outbound_shipping);state.sales.unshift({id:crypto.randomUUID(),product_name:item.product_name,brand:item.brand,variant:item.variant,sold_at:data.sold_at,sale_price_cents:price,true_cost_cents:item.total_cost_cents,profit_cents:profit,customer_name:data.customer||'—',platform:data.platform});state.inventory=state.inventory.filter(x=>x.id!==item.id)}if(!demoMode)await api('/api/sales',{method:'POST',body:JSON.stringify({inventory_item_id:data.inventory_item_id,sale_price_cents:euro(data.sale_price),platform:data.platform,platform_fee_cents:euro(data.platform_fee),outbound_shipping_cents:euro(data.outbound_shipping),sold_at:data.sold_at})})}else if(type==='customer'){state.customers.unshift({name:data.name,phone:data.phone,purchases:0,spent_cents:0,tag:data.tag,last_purchase:'—'});if(!demoMode)await api('/api/customers',{method:'POST',body:JSON.stringify(data)})}closeModal();showToast('Spremljeno.');render(type==='sale'?'prodaje':type==='inventory'?'zaliha':type==='customer'?'kupci':type==='product'?'proizvodi':state.view)}catch(error){showToast(error.message||'Došlo je do greške.')} }
+async function submitForm(event){
+  event.preventDefault();
+  const form=event.currentTarget,type=form.dataset.type,data=Object.fromEntries(new FormData(form));
+  const submit=form.querySelector('button[type="submit"],button.primary-button:last-child');
+  const euro=(value)=>Math.round((Number(value)||0)*100);
+  if(submit){submit.disabled=true;submit.textContent='Spremanje…'}
+  try{
+    if(type==='inventory'){
+      const product=state.products.find((item)=>item.id===data.product_id);
+      const payload={product_id:data.product_id,variant:data.variant,purchase_price_cents:euro(data.purchase_price),inbound_shipping_cents:euro(data.shipping),authentication_fee_cents:euro(data.authentication),additional_cost_cents:euro(data.additional),purchased_at:data.purchased_at};
+      const saved=demoMode?{id:crypto.randomUUID(),total_cost_cents:payload.purchase_price_cents+payload.inbound_shipping_cents+payload.authentication_fee_cents+payload.additional_cost_cents}:await api('/api/inventory',{method:'POST',body:JSON.stringify(payload)});
+      state.inventory.unshift({id:saved.id,product_name:product?.name??'Artikl',brand:product?.brand??'',variant:data.variant,total_cost_cents:saved.total_cost_cents,purchase_price_cents:payload.purchase_price_cents,age_days:0});
+    }else if(type==='product'){
+      const saved=demoMode?{id:crypto.randomUUID()}:await api('/api/products',{method:'POST',body:JSON.stringify(data)});
+      state.products.unshift({id:saved.id,name:data.name,brand:data.brand});
+    }else if(type==='sale'){
+      const item=state.inventory.find((row)=>row.id===data.inventory_item_id);
+      if(!item)throw new Error('Artikl nije pronađen. Osvježite stranicu i pokušajte ponovno.');
+      const payload={inventory_item_id:data.inventory_item_id,sale_price_cents:euro(data.sale_price),platform:data.platform,platform_fee_cents:euro(data.platform_fee),outbound_shipping_cents:euro(data.outbound_shipping),sold_at:data.sold_at};
+      const saved=demoMode?{id:crypto.randomUUID(),netProfitCents:payload.sale_price_cents-item.total_cost_cents-payload.platform_fee_cents-payload.outbound_shipping_cents}:await api('/api/sales',{method:'POST',body:JSON.stringify(payload)});
+      state.sales.unshift({id:saved.id,product_name:item.product_name,brand:item.brand,variant:item.variant,sold_at:data.sold_at,sale_price_cents:payload.sale_price_cents,true_cost_cents:item.total_cost_cents,profit_cents:saved.netProfitCents,customer_name:data.customer||'—',platform:data.platform});
+      state.inventory=state.inventory.filter((row)=>row.id!==item.id);
+    }else if(type==='customer'){
+      const saved=demoMode?{id:crypto.randomUUID()}:await api('/api/customers',{method:'POST',body:JSON.stringify(data)});
+      state.customers.unshift({id:saved.id,name:data.name,phone:data.phone,purchases:0,spent_cents:0,tag:data.tag,last_purchase:'—'});
+    }else if(type==='expense'&&!demoMode){
+      await api('/api/expenses',{method:'POST',body:JSON.stringify({category:data.category,description:data.description,amount_cents:euro(data.amount),occurred_at:data.occurred_at})});
+    }
+    closeModal();showToast('Spremljeno.');
+    render(type==='sale'?'prodaje':type==='inventory'?'zaliha':type==='customer'?'kupci':type==='product'?'proizvodi':type==='expense'?'troskovi':state.view);
+  }catch(error){
+    showToast(error.message||'Došlo je do greške.');
+    if(submit){submit.disabled=false;submit.textContent='Spremi'}
+  }
+}
 
 function openSheet(){$("#sheetBackdrop").hidden=false;$("#actionSheet").hidden=false}function closeSheet(){$("#sheetBackdrop").hidden=true;$("#actionSheet").hidden=true}function showToast(message){const toast=$("#toast");toast.textContent=message;toast.hidden=false;setTimeout(()=>toast.hidden=true,2600)}
 function bindDynamic(){$$('[data-view]',$("#appView")).forEach(b=>b.onclick=()=>render(b.dataset.view));$$('[data-open-form]').forEach(b=>b.onclick=()=>openForm(b.dataset.openForm));$$('[data-quick-sale]').forEach(b=>b.onclick=()=>openForm('sale',b.dataset.quickSale));$('[data-print]')?.addEventListener('click',()=>window.print());$$('[data-theme-choice]').forEach(b=>b.onclick=()=>setTheme(b.dataset.themeChoice))}
